@@ -22,6 +22,7 @@ body, html {
 }
 
 #controls input {
+  display: block;
   margin: 5px 0;
   width: 250px;
   padding: 6px;
@@ -30,7 +31,7 @@ body, html {
 #controls button {
   width: 100%;
   padding: 6px;
-  background-color: #4285f4;
+  background-color: #2c7be5;
   color: white;
   border: none;
   border-radius: 4px;
