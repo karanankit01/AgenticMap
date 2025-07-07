@@ -3,17 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Map Clone - Open Source</title>
+  <title>Agentic Map</title>
   <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div id="controls">
-    <input type="text" id="searchBox" placeholder="Search location..." />
-    <input type="text" id="fromBox" placeholder="From..." />
-    <input type="text" id="toBox" placeholder="To..." />
-    <button id="routeBtn">Get Route</button>
+  <div id="searchBoxContainer" class="control-panel">
+    <input type="text" id="searchBox" placeholder="🔍 Search any location..." />
+    <button id="searchBtn">🔍 Search</button>
   </div>
+  
+  <div id="routePlanner" class="control-panel">
+    <input type="text" id="fromBox" placeholder="📍 From location..." />
+    <input type="text" id="toBox" placeholder="🏁 To location..." />
+    <button id="routeBtn">🚗 Get Route</button>
+    <div id="routeInfo"></div>
+  </div>
+  
+  
+
   <div id="map"></div>
 
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>

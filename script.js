@@ -10,8 +10,11 @@ const map = new maplibregl.Map({
 });
 
 let routeLayer = null;
+let searchMarker = null;
 
-// Geocoding search
+// -------------------------
+// Location Search
+// -------------------------
 async function geocode(query) {
   const response = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(query)}.json?key=${MAPTILER_API_KEY}`);
   const data = await response.json();
@@ -23,21 +26,37 @@ async function geocode(query) {
   }
 }
 
-document.getElementById('searchBox').addEventListener('keypress', async (e) => {
+async function performSearch(query) {
+  try {
+    const coords = await geocode(query);
+    if (searchMarker) searchMarker.remove();
+    searchMarker = new maplibregl.Marker().setLngLat([coords.lon, coords.lat]).addTo(map);
+    map.flyTo({ center: [coords.lon, coords.lat], zoom: 14 });
+  } catch (err) {
+    alert(err.message);
+  }
+}
+
+document.getElementById('searchBox').addEventListener('keypress', (e) => {
   if (e.key === 'Enter') {
-    try {
-      const coords = await geocode(e.target.value);
-      new maplibregl.Marker().setLngLat([coords.lon, coords.lat]).addTo(map);
-      map.flyTo({ center: [coords.lon, coords.lat], zoom: 14 });
-    } catch (err) {
-      alert(err.message);
-    }
+    performSearch(e.target.value);
   }
 });
 
+document.getElementById('searchBtn').addEventListener('click', () => {
+  const query = document.getElementById('searchBox').value;
+  if (query) performSearch(query);
+});
+
+// -------------------------
+// Route Planner
+// -------------------------
 document.getElementById('routeBtn').addEventListener('click', async () => {
   const fromText = document.getElementById('fromBox').value;
   const toText = document.getElementById('toBox').value;
+  const routeInfo = document.getElementById('routeInfo');
+  routeInfo.innerText = '';
+
   if (!fromText || !toText) return alert("Enter both 'From' and 'To' addresses.");
 
   try {
@@ -51,7 +70,7 @@ document.getElementById('routeBtn').addEventListener('click', async () => {
       ]
     };
 
-    const response = await fetch(`https://api.openrouteservice.org/v2/directions/driving-car/geojson`, {
+    const response = await fetch(`https://api.openrouteservice.org/v2/directions/driving-car`, {
       method: 'POST',
       headers: {
         'Authorization': ORS_API_KEY,
@@ -62,7 +81,9 @@ document.getElementById('routeBtn').addEventListener('click', async () => {
 
     const data = await response.json();
 
+    // Clean previous
     if (routeLayer) map.removeLayer('route');
+    if (map.getSource('route')) map.removeSource('route');
 
     map.addSource('route', {
       type: 'geojson',
@@ -82,6 +103,13 @@ document.getElementById('routeBtn').addEventListener('click', async () => {
 
     const coords = data.features[0].geometry.coordinates;
     map.fitBounds([coords[0], coords[coords.length - 1]], { padding: 50 });
+
+    // Show route info
+    const summary = data.features[0].properties.summary;
+    const distKm = (summary.distance / 1000).toFixed(2);
+    const durationMin = (summary.duration / 60).toFixed(1);
+    routeInfo.innerText = `Distance: ${distKm} km · Duration: ${durationMin} mins`;
+
   } catch (err) {
     console.error(err);
     alert("Could not retrieve route.");
